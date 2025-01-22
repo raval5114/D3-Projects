@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:pdf_esigner/repos/esigner.dart';
 
 class Options extends StatefulWidget {
+  final Esigner esigner;
   final VoidCallback onClose;
 
-  const Options({Key? key, required this.onClose}) : super(key: key);
+  const Options({Key? key, required this.onClose, required this.esigner})
+      : super(key: key);
 
   @override
   State<Options> createState() => _OptionsState();
@@ -41,29 +43,6 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-
-  // File picker function for PFX file
-  Future<void> _pickPfxFile() async {
-    try {
-      // Open file picker and allow the user to select a PFX file
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pfx'], // Only allow .pfx files
-      );
-
-      if (result != null) {
-        setState(() {
-          _selectedPfxFile =
-              File(result.files.single.path!); // Set the selected file
-        });
-        print("Selected PFX File: ${_selectedPfxFile!.path}");
-      } else {
-        print("File picking canceled.");
-      }
-    } catch (e) {
-      print("Error picking file: $e");
-    }
   }
 
   @override
@@ -103,7 +82,9 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
                   ),
                 ),
                 InkWell(
-                  onTap: _pickPfxFile, // Open file picker when tapped
+                  onTap: () async {
+                    widget.esigner.pickFile('pfx');
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
