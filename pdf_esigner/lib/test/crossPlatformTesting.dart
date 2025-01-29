@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
@@ -10,7 +11,7 @@ import 'dart:ui';
 import 'package:universal_html/html.dart'
     as universal_html; // For web file downloads
 
-class Esigner {
+class EsignerTestingMate {
   File? pdfFile; // Declare the file variable for native platforms (PDF)
   Uint8List? pdfBytes; // For web (bytes of the PDF file)
   String? pdfFileName; // For web (PDF file name)
@@ -192,5 +193,64 @@ class FileDownloader {
     final file = File(filePath);
     await file.writeAsBytes(data);
     debugPrint('File saved at $filePath');
+  }
+}
+
+class Crossplatformtesting extends StatefulWidget {
+  const Crossplatformtesting({super.key});
+
+  @override
+  State<Crossplatformtesting> createState() => _CrossplatformtestingState();
+}
+
+class _CrossplatformtestingState extends State<Crossplatformtesting> {
+  EsignerTestingMate esinger = EsignerTestingMate();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Testing"),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 13,
+          children: [
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent),
+                onPressed: () {
+                  esinger.pickFile('Pdf');
+                },
+                child: Text(
+                  "Add Pdf",
+                  style: TextStyle(color: Colors.white),
+                )),
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent),
+                onPressed: () {
+                  esinger.pickFile('Pfx');
+                },
+                child: Text(
+                  "Add pfx",
+                  style: TextStyle(color: Colors.white),
+                )),
+            ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent),
+                onPressed: () {
+                  esinger.signByPfx('1234567890');
+                },
+                child: Text(
+                  "Sign And Save",
+                  style: TextStyle(color: Colors.white),
+                )),
+          ],
+        ),
+      ),
+    );
   }
 }

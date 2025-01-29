@@ -26,9 +26,8 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
     // Initialize the animation controller
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
     );
-
     // Define the scale animation
     _scaleAnimation = CurvedAnimation(
       parent: _animationController,
@@ -45,6 +44,26 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  // Common widget for option items to reduce repetition
+  Widget _buildOptionItem(String label, VoidCallback onTap,
+      {Color color = Colors.purpleAccent}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(5),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -55,7 +74,7 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -68,37 +87,35 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Align left
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Title
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.only(bottom: 10.0),
                   child: Text(
                     "Signature Options",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
-                InkWell(
-                  onTap: () async {
-                    widget.esigner.pickFile('pfx');
+                // PFX File Option
+                _buildOptionItem(
+                  "Pfx File",
+                  () async {
+                    await widget.esigner.pickFile('pfx');
+                    setState(() {
+                      _selectedPfxFile = widget.esigner.pfxFile;
+                    });
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "Pfx File",
-                      style: TextStyle(
-                        color: Colors.purpleAccent,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
                 ),
+                // Display selected PFX file if available
                 if (_selectedPfxFile != null)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.only(top: 5.0),
                     child: Text(
                       "Selected PFX: ${_selectedPfxFile!.path.split('/').last}",
                       style: TextStyle(
@@ -107,39 +124,25 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
                       ),
                     ),
                   ),
-                InkWell(
-                  onTap: () {
+                const SizedBox(height: 10),
+                // Handwritten Option
+                _buildOptionItem(
+                  "Handwritten",
+                  () {
                     print("Handwritten option selected");
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "Handwritten",
-                      style: TextStyle(
-                        color: Colors.purpleAccent,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
                 ),
-                SizedBox(height: 10),
-                InkWell(
-                  onTap: () {
+                const SizedBox(height: 10),
+                // Close Option
+                _buildOptionItem(
+                  "Close",
+                  () {
                     // Reverse the animation before closing
                     _animationController.reverse().then((_) {
                       widget.onClose();
                     });
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      "Close",
-                      style: TextStyle(
-                        color: Colors.purpleAccent,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
+                  color: Colors.redAccent,
                 ),
               ],
             ),
