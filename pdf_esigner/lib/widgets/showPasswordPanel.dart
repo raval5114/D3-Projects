@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf_esigner/repos/esigner.dart';
 
 class PasswordPanel extends StatefulWidget {
@@ -11,133 +12,134 @@ class PasswordPanel extends StatefulWidget {
 
 class _PasswordPanelState extends State<PasswordPanel> {
   final TextEditingController _passwordController = TextEditingController();
-  bool _isSigning = false; // Tracks if signing is in progress
-  bool _obscureText = true; // Tracks password visibility
+  bool _isSigning = false;
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Enter Password:'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildPasswordInput(),
-          if (_isSigning) ...[
-            SizedBox(height: 16),
-            CircularProgressIndicator(), // Loader when signing is in progress
-          ],
-        ],
-      ),
-      actions: [
-        _buildCancelButton(context),
-        _buildEnterButton(context),
-      ],
-    );
-  }
-
-  // Password input field with suffix for toggling visibility
-  Widget _buildPasswordInput() {
-    return TextField(
-      controller: _passwordController,
-      obscureText: _obscureText, // Hide or show the text based on _obscureText
-      decoration: InputDecoration(
-        hintText: 'Enter your password',
-        border: OutlineInputBorder(),
-        suffix: InkWell(
-          onTap: _togglePasswordVisibility, // Toggle password visibility on tap
-          child: Icon(
-            _obscureText ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey, // Icon color
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: ConstrainedBox(
+        constraints:
+            const BoxConstraints(maxWidth: 400), // Ensuring good UI on web
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Enter Password',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 15),
+              _buildPasswordInput(),
+              if (_isSigning) const SizedBox(height: 16),
+              if (_isSigning) const CircularProgressIndicator(),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildCancelButton(context),
+                  _buildEnterButton(context),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // Toggle the visibility of the password
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscureText = !_obscureText; // Toggle the obscureText value
-    });
+  // Password Input Field with Visibility Toggle
+  Widget _buildPasswordInput() {
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.enter) {
+          _handleSign();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: TextField(
+        controller: _passwordController,
+        obscureText: _obscureText,
+        decoration: InputDecoration(
+          hintText: 'Enter your password',
+          border: const OutlineInputBorder(),
+          suffixIcon: IconButton(
+            icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+          ),
+        ),
+      ),
+    );
   }
 
-  // Cancel button for dialog
+  // Cancel Button
   Widget _buildCancelButton(BuildContext context) {
     return TextButton(
-      style: TextButton.styleFrom(backgroundColor: Colors.purpleAccent),
-      onPressed: _isSigning
-          ? null
-          : () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-      child: Text(
-        'CANCEL',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      onPressed: _isSigning ? null : () => Navigator.of(context).pop(),
+      style: TextButton.styleFrom(backgroundColor: Colors.redAccent),
+      child: const Text('CANCEL', style: TextStyle(color: Colors.white)),
     );
   }
 
-  // Enter button to confirm password and sign
+  // Enter Button - Handles Password Submission
   Widget _buildEnterButton(BuildContext context) {
     return TextButton(
-      style: TextButton.styleFrom(backgroundColor: Colors.purpleAccent),
-      onPressed: _isSigning
-          ? null
-          : () async {
-              if (_passwordController.text.isEmpty) {
-                _showErrorDialog(context, "Password cannot be empty.");
-                return;
-              }
-
-              setState(() {
-                _isSigning = true; // Set signing state to true
-              });
-
-              try {
-                // Attempt to sign the PDF with the entered password
-                bool success = await widget.esigner
-                    .signByPfx(_passwordController.text.trim());
-                if (success) {
-                  Navigator.of(context).pop(); // Automatically close dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('PDF signed successfully!')),
-                  );
-                }
-              } catch (e) {
-                // Show error dialog if signing fails
-                _showErrorDialog(context, e.toString());
-              } finally {
-                setState(() {
-                  _isSigning = false; // Reset signing state
-                });
-              }
-            },
-      child: Text(
-        'ENTER',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      onPressed: _isSigning ? null : _handleSign,
+      style: TextButton.styleFrom(backgroundColor: Colors.deepPurple),
+      child: const Text('ENTER', style: TextStyle(color: Colors.white)),
     );
   }
 
-  // Display error dialog
-  void _showErrorDialog(BuildContext context, String message) {
+  // Handles Signing Logic
+  Future<void> _handleSign() async {
+    FocusScope.of(context).unfocus(); // Hide keyboard and remove focus
+
+    if (_passwordController.text.isEmpty) {
+      _showErrorDialog("Password cannot be empty.");
+      return;
+    }
+
+    setState(() {
+      _isSigning = true;
+    });
+
+    try {
+      bool success =
+          await widget.esigner.signByPfx(_passwordController.text.trim());
+      if (success) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PDF signed successfully!')),
+        );
+      }
+    } catch (e) {
+      _showErrorDialog(e.toString());
+    } finally {
+      setState(() {
+        _isSigning = false;
+      });
+    }
+  }
+
+  // Displays Error Dialog
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Error"),
+        title: const Text("Error"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text("OK"),
+            child: const Text("OK"),
           ),
         ],
       ),
