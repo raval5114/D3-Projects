@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_esigner/repos/esigner.dart';
 import 'package:pdf_esigner/widgets/options.dart';
-import 'package:pdf_esigner/widgets/showPasswordPanel.dart';
+import 'dart:js_interop';
+
+@JS('showPasswordPrompt')
+external String? showPasswordPrompt();
 
 class WebHomepage extends StatefulWidget {
   const WebHomepage({super.key});
@@ -11,6 +14,7 @@ class WebHomepage extends StatefulWidget {
 }
 
 class _WebHomepageState extends State<WebHomepage> {
+  bool isDownloading = false;
   final Esigner esigner = Esigner();
   OverlayEntry? _overlayEntry;
 
@@ -50,6 +54,28 @@ class _WebHomepageState extends State<WebHomepage> {
 
   @override
   Widget build(BuildContext context) {
+    //for signing
+    void showBrowserPasswordDialog() async {
+      String? password = showPasswordPrompt(); // Call JS function
+
+      if (password != null) {
+        setState(() {
+          isDownloading = true;
+        });
+
+        bool success = await esigner.signByPfx(password);
+
+        if (success) {
+          esigner.downloadPdf_ForWeb();
+          _showSnackBar("Signed Successfully");
+        } else {
+          _showSnackBar("Signing failed. Please check the password.");
+        }
+      } else {
+        debugPrint("Password input was canceled.");
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("PDF e-Signer Web"),
@@ -109,10 +135,7 @@ class _WebHomepageState extends State<WebHomepage> {
                   _showSnackBar("No PFX file selected for signing.");
                   return;
                 }
-                showDialog(
-                  context: context,
-                  builder: (context) => PasswordPanel(esigner: esigner),
-                );
+                showBrowserPasswordDialog();
               }, Colors.deepPurple),
             ],
           ),

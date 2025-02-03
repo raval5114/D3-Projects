@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf_esigner/repos/esigner.dart';
 import 'package:pdf_esigner/widgets/options.dart';
 import 'package:pdf_esigner/widgets/showPasswordPanel.dart';
+import 'package:pdf_esigner/widgets/showPasswordPanelWeb.dart';
 
 class MyTestingApp extends StatefulWidget {
   const MyTestingApp({super.key});
@@ -138,11 +139,15 @@ class _MyTestingAppState extends State<MyTestingApp> {
                     _showSnackBar("No PFX file selected for signing.");
                     return;
                   }
-                  showDialog(
-                    context: context,
-                    builder: (context) => PasswordPanel(esigner: esigner),
-                  );
+                  //how can i use it here
+                  PasswordPanelWeb passwordPanel =
+                      PasswordPanelWeb(esigner: esigner, context: context);
+                  passwordPanel.showOverlay();
+                  debugPrint("Showing Overlay");
                 }, Colors.deepPurple),
+                SizedBox(
+                  height: 40,
+                ),
               ],
             ),
           ),

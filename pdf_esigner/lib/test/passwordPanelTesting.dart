@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pdf_esigner/widgets/showPasswordPanel.dart';
+import 'dart:js' as js;
 
 class PasswordPanelTesting extends StatefulWidget {
   const PasswordPanelTesting({super.key});
@@ -18,13 +18,20 @@ class _PasswordPanelTestingState extends State<PasswordPanelTesting> {
         ),
         body: Center(
           child: ElevatedButton(
-              onPressed: () {
-                // showDialog(
-                //   context: context,
-                //   builder: (context) => const PasswordPanel(),
-                // );
-              },
-              child: Text("Click Here")),
+              onPressed: () => showBrowserPasswordDialog(),
+              child: Text("Enter")),
         ));
+  }
+}
+
+void showBrowserPasswordDialog() {
+  // Use JavaScript's prompt function via dart:js
+  var password = js.context.callMethod('prompt', ['Enter Password:', '']);
+
+  // Check if password is entered or the prompt was canceled
+  if (password != null && password.isNotEmpty) {
+    print("Entered Password: $password");
+  } else {
+    print("Password entry was cancelled.");
   }
 }

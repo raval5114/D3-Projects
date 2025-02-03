@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf_esigner/pages/homepage.dart';
 import 'package:pdf_esigner/pages/homepage_web.dart';
-import 'package:pdf_esigner/test/mainTest.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,7 +32,7 @@ class CrossHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
-      return MyTestingApp();
+      return WebHomepage();
     }
     if (!kIsWeb && Platform.isAndroid) {
       return Homepage();

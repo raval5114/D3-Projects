@@ -18,7 +18,7 @@ class Esigner {
   File? pfxFile; // Declare the file variable for native platforms (PFX)
   Uint8List? pfxBytes; // For web (bytes of the PFX file)
   String? pfxFileName; // For web (PFX file name)
-
+  Uint8List? signedBytes;
   String? signedPdfPath; // Path to save the signed PDF
 
   Future<void> pickFile(String restrictedFileType) async {
@@ -136,17 +136,14 @@ class Esigner {
 
       // Save the document
       List<int> signedData = await document.save();
-      Uint8List signedBytes = Uint8List.fromList(signedData);
+      signedBytes = Uint8List.fromList(signedData);
 
-      final fileDownloader = FileDownloader();
       if (kIsWeb) {
         // Web-specific logic
-        signedPdfPath = "signed_document.pdf";
-        fileDownloader.downloadFile(signedBytes, signedPdfPath!);
       } else {
         // Native platform logic
         signedPdfPath = '${pdfFile!.parent.path}/signed_document.pdf';
-        await File(signedPdfPath!).writeAsBytes(signedBytes);
+        await File(signedPdfPath!).writeAsBytes(signedBytes!);
         debugPrint("PDF signed successfully! Saved at: $signedPdfPath");
         openSignedPdf();
       }
@@ -158,6 +155,12 @@ class Esigner {
       throw Exception(
           "Failed to sign the PDF. Please ensure the password is correct or try again.");
     }
+  }
+
+  void downloadPdf_ForWeb() {
+    final fileDownloader = FileDownloader();
+
+    fileDownloader.downloadFile(signedBytes!, "signed_document.pdf");
   }
 
   void openSignedPdf() {
