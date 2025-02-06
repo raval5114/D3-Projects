@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pdf_esigner/config.dart';
 import 'package:pdf_esigner/repos/esigner.dart';
 import 'package:pdf_esigner/widgets/options.dart';
 import 'dart:js_interop';
@@ -24,7 +25,7 @@ class _WebHomepageState extends State<WebHomepage> {
         content: Text(message),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: PRIMARY_COLOR,
       ),
     );
   }
@@ -80,12 +81,12 @@ class _WebHomepageState extends State<WebHomepage> {
       appBar: AppBar(
         title: const Text("PDF e-Signer Web"),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: PRIMARY_COLOR,
         elevation: 2,
       ),
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
-        backgroundColor: Colors.purpleAccent,
+        backgroundColor: SECOUNDARY_COLOR,
         onPressed: () {
           if (_overlayEntry == null) {
             _showOverlay();
@@ -119,8 +120,8 @@ class _WebHomepageState extends State<WebHomepage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (esigner.pdfBytes != null)
-                _buildFileInfo("PDF File Added", esigner.pdfFileName!,
-                    Colors.purpleAccent),
+                _buildFileInfo(
+                    "PDF File Added", esigner.pdfFileName!, SECOUNDARY_COLOR),
               if (esigner.pfxBytes != null)
                 _buildFileInfo(
                     "PFX File Added", esigner.pfxFileName!, Colors.deepPurple),
@@ -128,7 +129,7 @@ class _WebHomepageState extends State<WebHomepage> {
               _buildButton("Add PDF", () async {
                 await esigner.pickFile('pdf');
                 setState(() {});
-              }, Colors.purpleAccent),
+              }, SECOUNDARY_COLOR),
               const SizedBox(height: 20),
               _buildButton("Sign and Save PDF", () async {
                 if (esigner.pfxBytes == null) {
@@ -136,7 +137,7 @@ class _WebHomepageState extends State<WebHomepage> {
                   return;
                 }
                 showBrowserPasswordDialog();
-              }, Colors.deepPurple),
+              }, PRIMARY_COLOR),
             ],
           ),
         ),

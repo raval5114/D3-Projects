@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pdf_esigner/config.dart';
 import 'dart:io';
 import 'package:pdf_esigner/repos/esigner.dart';
 
@@ -26,7 +27,7 @@ class _OptionsState extends State<Options> with SingleTickerProviderStateMixin {
     // Initialize the animation controller
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: ANIMATION_SPEED,
     );
     // Define the scale animation
     _scaleAnimation = CurvedAnimation(
