@@ -14,7 +14,6 @@ class Esigner {
   File? pdfFile; // Declare the file variable for native platforms (PDF)
   Uint8List? pdfBytes; // For web (bytes of the PDF file)
   String? pdfFileName; // For web (PDF file name)
-
   File? pfxFile; // Declare the file variable for native platforms (PFX)
   Uint8List? pfxBytes; // For web (bytes of the PFX file)
   String? pfxFileName; // For web (PFX file name)
@@ -26,6 +25,7 @@ class Esigner {
       // Pick file using file_picker
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
+        allowMultiple: true,
         allowedExtensions:
             restrictedFileType.toLowerCase() == "pdf" ? ['pdf'] : ['pfx'],
       );
