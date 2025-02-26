@@ -1,193 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:pdf_esigner/config.dart';
-import 'package:pdf_esigner/repos/esigner.dart';
-import 'package:pdf_esigner/widgets/options.dart';
-import 'dart:js_interop';
+import 'package:pdf_esigner/test/repo_testing/pdf_esigner.dart';
+import 'package:pdf_esigner/widgets/src/acknowledgementOfFile.dart';
+import 'package:pdf_esigner/widgets/src/fileShowingTile.dart';
 
-@JS('showPasswordPrompt')
-external String? showPasswordPrompt();
-
-class WebHomepage extends StatefulWidget {
-  const WebHomepage({super.key});
+class HomePageForWeb extends StatefulWidget {
+  const HomePageForWeb({super.key});
 
   @override
-  State<WebHomepage> createState() => _WebHomepageState();
+  State<HomePageForWeb> createState() => _HomePageForWebState();
 }
 
-class _WebHomepageState extends State<WebHomepage> {
-  bool isDownloading = false;
-  final Esigner esigner = Esigner();
-  OverlayEntry? _overlayEntry;
+class _HomePageForWebState extends State<HomePageForWeb> {
+  String? pfxFileName;
+  Map<String, double> signingProgress = {};
 
-  void _showSnackBar(String message) {
+  void _pickPdfFiles() async {
+    await esignerWeb.pickFiles("pdf");
+    setState(() {});
+  }
+
+  void _pickPfxFile() async {
+    await esignerWeb.pickFiles("pfx");
+    setState(() {
+      pfxFileName = esignerWeb.pfxFile != null ? "✅ PFX File Selected" : null;
+    });
+  }
+
+  void showSnackbar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: color,
         duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: PRIMARY_COLOR,
       ),
     );
   }
 
-  // Function to create the overlay entry
-  OverlayEntry _createOverlayEntry() {
-    return OverlayEntry(
-      builder: (context) => Options(
-        onClose: _removeOverlay,
-        esigner: esigner,
-      ),
-    );
-  }
-
-  // Display the overlay
-  void _showOverlay() {
-    if (_overlayEntry != null) return; // Prevent duplicate overlays
-    _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  // Remove the overlay
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
+  Future<bool> signPdfWithProgress(PdfFileForFlutter file) async {
+    for (double progress = 0.2; progress <= 1.0; progress += 0.2) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      setState(() => signingProgress[file.fileName] = progress);
+    }
+    return await esignerWeb.signByPfx(file, '1234567890');
   }
 
   @override
   Widget build(BuildContext context) {
-    //for signing
-    void showBrowserPasswordDialog() async {
-      String? password = showPasswordPrompt(); // Call JS function
-
-      if (password != null) {
-        setState(() {
-          isDownloading = true;
-        });
-
-        bool success = await esigner.signByPfx(password);
-
-        if (success) {
-          esigner.downloadPdf_ForWeb();
-          _showSnackBar("Signed Successfully");
-        } else {
-          _showSnackBar("Signing failed. Please check the password.");
-        }
-      } else {
-        debugPrint("Password input was canceled.");
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("PDF e-Signer Web"),
-        centerTitle: true,
+        title: const Text("PDF Signer"),
         backgroundColor: PRIMARY_COLOR,
-        elevation: 2,
+        centerTitle: true,
+        elevation: 4,
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: SECOUNDARY_COLOR,
-        onPressed: () {
-          if (_overlayEntry == null) {
-            _showOverlay();
-          } else {
-            _removeOverlay();
-          }
-          setState(() {}); // Ensure UI updates when overlay state changes
-        },
-        child: Icon(
-          _overlayEntry == null ? Icons.edit : Icons.close,
-          color: Colors.white,
-        ),
-      ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (esigner.pdfBytes != null)
-                _buildFileInfo(
-                    "PDF File Added", esigner.pdfFileName!, SECOUNDARY_COLOR),
-              if (esigner.pfxBytes != null)
-                _buildFileInfo(
-                    "PFX File Added", esigner.pfxFileName!, Colors.deepPurple),
-              const SizedBox(height: 30),
-              _buildButton("Add PDF", () async {
-                await esigner.pickFile('pdf');
-                setState(() {});
-              }, SECOUNDARY_COLOR),
-              const SizedBox(height: 20),
-              _buildButton("Sign and Save PDF", () async {
-                if (esigner.pfxBytes == null) {
-                  _showSnackBar("No PFX file selected for signing.");
-                  return;
-                }
-                showBrowserPasswordDialog();
-              }, PRIMARY_COLOR),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFileInfo(String label, String fileName, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-      margin: const EdgeInsets.only(bottom: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: textColor, width: 2),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text("$label:",
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-          Flexible(
-            child: Text(
-              fileName,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          children: [
+            AnimatedOpacity(
+              opacity: pfxFileName != null ? 1.0 : 0.0,
+              duration: ANIMATION_SPEED,
+              child: PfxAcknowledgment(pfxFileName: pfxFileName),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildButton(String label, VoidCallback onTap, Color backgroundColor) {
-    return SizedBox(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          elevation: 5,
+            const SizedBox(height: 10),
+            Expanded(
+              child: esignerWeb.pdfFiles.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "No PDF files selected",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding:
+                          const EdgeInsets.only(bottom: 80), // 👈 Added Padding
+                      itemCount: esignerWeb.pdfFiles.length,
+                      itemBuilder: (context, index) {
+                        final file = esignerWeb.pdfFiles[index];
+                        return FileShowingTile(
+                          file: file,
+                          signingProgress:
+                              signingProgress[file.fileName] ?? 0.0,
+                          onSignTap: () async {
+                            if (!file.isSigned) {
+                              setState(
+                                  () => signingProgress[file.fileName] = 0.1);
+                              bool success = await signPdfWithProgress(file);
+                              if (success) {
+                                showSnackbar(
+                                    "✅ Signing successful!", Colors.green);
+                              } else {
+                                showSnackbar("❌ Signing failed!", Colors.red);
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-              fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20), // 👈 Moves FAB up
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FloatingActionButton.extended(
+              heroTag: "pdf",
+              onPressed: _pickPdfFiles,
+              icon: const Icon(Icons.picture_as_pdf),
+              label: const Text("Pick PDF"),
+              backgroundColor: PRIMARY_COLOR,
+            ),
+            const SizedBox(height: 10),
+            FloatingActionButton.extended(
+              heroTag: "pfx",
+              onPressed: _pickPfxFile,
+              icon: const Icon(Icons.security),
+              label: const Text("Pick PFX"),
+              backgroundColor: SECOUNDARY_COLOR,
+            ),
+          ],
         ),
       ),
     );

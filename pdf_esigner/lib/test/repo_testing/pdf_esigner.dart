@@ -1,43 +1,39 @@
-import 'dart:io';
 import 'dart:typed_data';
+import 'dart:html' as html;
 import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-// Model class to store file information
 class PdfFileForFlutter {
   final Uint8List pdfFile;
   final String fileName;
   final int fileSize;
   bool isSigned;
-  Uint8List? signedPdf; // Nullable to avoid uninitialized variable errors
+  Uint8List? signedPdf;
 
   PdfFileForFlutter(this.pdfFile, this.fileName, this.fileSize,
       {this.isSigned = false, this.signedPdf});
 }
 
-class PdfEsignerTest {
+class PdfEsignerWeb {
   List<PdfFileForFlutter> pdfFiles = [];
-  Uint8List? pfxFile; // Nullable to handle cases where no pfx is picked
+  Uint8List? pfxFile;
 
-  // Method to pick files (PDF or PFX)
-  Future<void> pickFiles(String restrictedFileType) async {
+  Future<void> pickFiles(String fileType) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowMultiple: restrictedFileType.toLowerCase() == "pdf",
-        withData: true, // Ensures bytes are loaded
-        allowedExtensions:
-            restrictedFileType.toLowerCase() == "pdf" ? ['pdf'] : ['pfx'],
+        allowMultiple: fileType.toLowerCase() == "pdf",
+        withData: true,
+        allowedExtensions: fileType.toLowerCase() == "pdf" ? ['pdf'] : ['pfx'],
       );
 
-      if (result != null) {
-        if (restrictedFileType.toLowerCase() == "pfx") {
-          if (result.files.isNotEmpty && result.files.first.bytes != null) {
-            pfxFile = result.files.first.bytes!;
-            debugPrint("PFX file loaded: ${result.files.first.name}");
-          }
+      if (result != null && result.files.isNotEmpty) {
+        if (fileType.toLowerCase() == "pfx") {
+          pfxFile = result.files.first.bytes;
+          debugPrint("PFX file loaded: ${result.files.first.name}");
         } else {
           pdfFiles.clear();
           for (var file in result.files) {
@@ -59,53 +55,108 @@ class PdfEsignerTest {
     }
   }
 
-  // Method to sign a PDF using a PFX file
-  Future<void> signPdf(PdfFileForFlutter file) async {
+  Future<bool> signByPfx(PdfFileForFlutter file, String password) async {
     try {
-      // Load the PDF document
-      PdfDocument document = PdfDocument(inputBytes: file.pdfFile);
-
-      // Ensure a PFX file is loaded
+      if (file.pdfFile.isEmpty) {
+        throw Exception("Selected PDF file is empty or invalid.");
+      }
       if (pfxFile == null) {
-        debugPrint("No PFX file loaded for signing.");
-        return;
+        throw Exception("No PFX file loaded. Please select a PFX file first.");
       }
 
-      // Assuming the PFX file contains a certificate and password
-      final pfxCertificate = PdfCertificate(pfxFile!, '1234567890');
+      Uint8List pdfData = file.pdfFile;
+      Uint8List pfxData = pfxFile!;
 
-      // Add signature field to the document
+      PdfDocument document = PdfDocument(inputBytes: pdfData);
+
+      PdfCertificate? certificate;
+      try {
+        certificate = PdfCertificate(pfxData, password);
+      } catch (e) {
+        debugPrint("Invalid PFX certificate or incorrect password.");
+        return false;
+      }
+
+      if (certificate == null) {
+        debugPrint("Failed to load certificate.");
+        return false;
+      }
+
+      PdfPage firstPage = document.pages[0];
       PdfSignatureField signatureField = PdfSignatureField(
-        document.pages[0], // Add signature on the first page
+        firstPage,
         'Signature',
-        bounds: Rect.fromLTWH(0, 0, 200, 50),
-        signature: PdfSignature(certificate: pfxCertificate),
+        bounds: const Rect.fromLTWH(100, 100, 200, 50),
       );
-
-      // Add the signature field to the document
+      signatureField.signature = PdfSignature(certificate: certificate);
       document.form.fields.add(signatureField);
 
-      // Save the signed document to a new file
-      final signedPdfBytes = await document.save();
-      document.dispose();
+      String signerName = certificate.subjectName;
+      String issuerName = certificate.issuerName;
+      DateTime validFrom = certificate.validFrom;
+      DateTime validTo = certificate.validTo;
 
-      // Save the signed PDF
-      file.signedPdf = signedPdfBytes as Uint8List?;
+      PdfPage acknowledgmentPage = document.pages.add();
+
+      String acknowledgmentText = '''
+    **Digitally Signed Document**
+    
+    This document has been digitally signed using a secure PFX certificate.
+    
+    **Signer Details:**
+    - Signed by: $signerName
+    - Issued by: $issuerName
+    - Valid From: ${validFrom.toLocal()}
+    - Valid Until: ${validTo.toLocal()}
+    
+    This digital signature ensures the authenticity and integrity of this document.
+    ''';
+
+      PdfTextElement textElement = PdfTextElement(
+        text: acknowledgmentText,
+        font: PdfStandardFont(PdfFontFamily.helvetica, 12),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+
+      textElement.draw(
+        page: acknowledgmentPage,
+        bounds: Rect.fromLTWH(20, 100, acknowledgmentPage.size.width - 40, 400),
+      );
+
+      List<int> signedData = await document.save();
+      Uint8List signedBytes = Uint8List.fromList(signedData);
+
       file.isSigned = true;
+      file.signedPdf = signedBytes;
 
-      // Optionally, you can save the signed file to the file system
-      final signedPdfFile = File('signed_${file.fileName}');
-      await signedPdfFile.writeAsBytes(signedPdfBytes);
-      debugPrint("PDF signed and saved as ${signedPdfFile.path}");
+      debugPrint(
+          "PDF successfully signed with an acknowledgment page at the end.");
+      document.dispose();
+      return true;
     } catch (e) {
-      debugPrint("Error signing PDF: $e");
+      debugPrint("Error signing PDF: ${e.toString()}");
+      return false;
     }
   }
 
-  void downloadFile() {
-    //create a function for downloading that signed file
+  Future<void> downloadFile(PdfFileForFlutter file, fileName) async {
+    if (file.signedPdf == null || file.signedPdf!.isEmpty) {
+      debugPrint("No signed file available for download.");
+      return;
+    }
+
+    String signedFileName = file.fileName.replaceAll(".pdf", "_signed.pdf");
+
+    final blob = html.Blob([file.signedPdf], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..target = 'blank'
+      ..download = signedFileName
+      ..click();
+    html.Url.revokeObjectUrl(url);
+
+    debugPrint("Signed PDF downloaded: $signedFileName");
   }
 }
 
-// Testing instance
-final PdfEsignerTest esignerTest = PdfEsignerTest();
+PdfEsignerWeb esignerWeb = PdfEsignerWeb();

@@ -1,24 +1,23 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
-import 'package:file_picker/file_picker.dart'; // For cross-platform file picking
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart'; // For getting temp directory
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:universal_html/html.dart'
-    as universal_html; // For web file downloads
+import 'package:universal_html/html.dart' as universal_html;
 
 class Esigner {
-  File? pdfFile; // Declare the file variable for native platforms (PDF)
-  Uint8List? pdfBytes; // For web (bytes of the PDF file)
-  String? pdfFileName; // For web (PDF file name)
-  File? pfxFile; // Declare the file variable for native platforms (PFX)
-  Uint8List? pfxBytes; // For web (bytes of the PFX file)
-  String? pfxFileName; // For web (PFX file name)
+  File? pdfFile;
+  Uint8List? pdfBytes;
+  String? pdfFileName;
+  File? pfxFile;
+  Uint8List? pfxBytes;
+  String? pfxFileName;
   Uint8List? signedBytes;
-  String? signedPdfPath; // Path to save the signed PDF
+  String? signedPdfPath;
 
   Future<void> pickFile(String restrictedFileType) async {
     try {
@@ -33,7 +32,7 @@ class Esigner {
       if (result != null) {
         if (kIsWeb) {
           // Handle web-specific logic
-          Uint8List? fileBytes = result.files.first.bytes; // File bytes for web
+          Uint8List? fileBytes = result.files.first.bytes;
           String? fileName = result.files.first.name; // File name
 
           if (restrictedFileType.toLowerCase() == "pdf") {
