@@ -102,7 +102,8 @@
 //         ),
 //       ),
 //       floatingActionButton: Padding(
-//         padding: const EdgeInsets.only(bottom: 20), // 👈 Moves FAB up
+//         padding: const EdgeInsets.only(bottom: 20),
+// 👈 Moves FAB up
 //         child: Column(
 //           mainAxisSize: MainAxisSize.min,
 //           children: [

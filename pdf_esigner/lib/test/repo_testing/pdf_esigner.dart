@@ -139,6 +139,22 @@ class PdfEsignerWeb {
     }
   }
 
+  Future<void> signAllFiles(String password) async {
+    if (pfxFile == null) {
+      debugPrint("No PFX file loaded. Please select a PFX file first.");
+      return;
+    }
+
+    for (var file in pdfFiles) {
+      bool result = await signByPfx(file, password);
+      if (!result) {
+        debugPrint("Failed to sign file: ${file.fileName}");
+      } else {
+        debugPrint("Successfully signed file: ${file.fileName}");
+      }
+    }
+  }
+
   Future<void> downloadFile(PdfFileForFlutter file, fileName) async {
     if (file.signedPdf == null || file.signedPdf!.isEmpty) {
       debugPrint("No signed file available for download.");
