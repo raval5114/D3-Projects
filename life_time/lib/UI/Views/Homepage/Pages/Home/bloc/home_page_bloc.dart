@@ -33,18 +33,12 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
       double completedPercentage = ((completedDays / convertingToDays) * 100);
       double remainingDaysPercentage = 100 - completedPercentage;
 
-      String? quote = await service.generateLifeQuote(
-        completedDays.toInt(),
-        remainingDays.toInt(),
-      );
-
       // Save data in SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('completedDays', completedDays);
       await prefs.setDouble('remainingDays', remainingDays);
       await prefs.setDouble('completedPercentage', completedPercentage);
       await prefs.setDouble('remainingDaysPercentage', remainingDaysPercentage);
-      await prefs.setString('quote', quote);
       // Emit success state with calculated values
       emit(HomePageSuccessState());
     } catch (e) {
