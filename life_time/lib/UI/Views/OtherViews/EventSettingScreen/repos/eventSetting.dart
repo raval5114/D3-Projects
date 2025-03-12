@@ -2,6 +2,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:life_time/Data/Models/User.dart';
 
 class EventSettingRepo {
@@ -68,7 +69,8 @@ class EventSettingRepo {
     required String eventDiscription,
     required String Color,
   }) async {
-    DateTime parsedStartDate = DateTime.parse(startDate);
+    DateFormat format = DateFormat("d/M/yyyy");
+    DateTime parsedStartDate = format.parse(startDate);
     final event = CalendarEventData(
       date: parsedStartDate,
       event: eventDiscription,

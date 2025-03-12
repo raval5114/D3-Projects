@@ -9,6 +9,7 @@ class UserModel {
   late String lifeExpectancyYears;
   late Timestamp createdAt;
   late DateTime dob;
+
   UserModel() {}
   Map<String, dynamic> toMap() {
     return {
@@ -17,7 +18,7 @@ class UserModel {
       'lastName': lastName,
       'username': username,
       'email': email,
-      'lifeExpectancyYears': lifeExpectancyYears ?? '50',
+      'lifeExpectancyYears': lifeExpectancyYears,
       'createdAt': createdAt.toDate().toIso8601String(),
       'dob': dob.toIso8601String(),
     };
@@ -33,8 +34,19 @@ class UserModel {
     lastName = map['lastName'];
     username = map['username'];
     email = map['email'];
-    lifeExpectancyYears = map['lifeExpectancyYears']?.toString() ?? '50';
+    lifeExpectancyYears = map['lifeExpectancy']?.toString() ?? '50';
     dob = (map['dob'] != null ? DateTime.tryParse(map['dob']) : null)!;
+  }
+
+  void clear() {
+    uid = '';
+    firstName = '';
+    lastName = '';
+    username = '';
+    email = '';
+    lifeExpectancyYears = '50';
+    createdAt = Timestamp.now();
+    dob = DateTime(2000); // Default DOB
   }
 }
 

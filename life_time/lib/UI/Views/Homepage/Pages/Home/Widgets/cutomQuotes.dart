@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:life_time/Data/Utils/quotes.dart';
 
 class CustomQuotes extends StatefulWidget {
   const CustomQuotes({super.key});
@@ -45,14 +46,15 @@ class _CustomQuotesState extends State<CustomQuotes>
 
   @override
   Widget build(BuildContext context) {
+    int _indexFromTheMonth = DateTime.now().day;
     return Center(
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 50),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.deepPurple.shade50,
               borderRadius: BorderRadius.circular(12),
@@ -65,14 +67,33 @@ class _CustomQuotesState extends State<CustomQuotes>
                 ),
               ],
             ),
-            child: Text(
-              "Keep going! Every day counts. 🚀",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.deepPurple.shade700,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "\"${quotesList[_indexFromTheMonth]['quote']}\"",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.deepPurple.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8), // Spacing between quote and author
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "-${quotesList[_indexFromTheMonth]['author']}",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.deepPurple.shade700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

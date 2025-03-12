@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:life_time/Data/Models/User.dart';
+import 'package:life_time/UI/Views/Auth/Signin/repos/signin.dart';
 import 'package:life_time/UI/Views/Homepage/Pages/Settings/widgets/src/settingTile.dart';
+import 'package:life_time/UI/Views/OtherViews/SetLifeExpentancyScreen/setLifeExpentancyScreen.dart';
+import 'package:life_time/UI/Views/SpalashScreen/splash_screen.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -25,6 +28,45 @@ class SettingSection extends StatefulWidget {
 }
 
 class _SettingSectionState extends State<SettingSection> {
+  void logout() {
+    Signin signin = Signin();
+    signin.signOut();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SplashScreen()),
+    );
+  }
+
+  /// **Shows a confirmation dialog before logging out**
+  void showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text("Logout Confirmation"),
+          content: const Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                logout(); // Call the logout function
+              },
+              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     String initials =
@@ -88,11 +130,18 @@ class _SettingSectionState extends State<SettingSection> {
         SettingOptionsTile(
           icon: Icons.heat_pump_rounded,
           title: "Set Life Expentency",
-          onTap: () => debugPrint("yass its working"),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SetLifeExpectancyScreen(),
+                ),
+              ),
           trailing: userModel.lifeExpectancyYears,
         ),
+
         SettingOptionsTile(
-          onTap: () => debugPrint("yass its working"),
+          onTap: () => showLogoutDialog(),
           title: "Log out",
           icon: Icons.logout,
           trailing: '',

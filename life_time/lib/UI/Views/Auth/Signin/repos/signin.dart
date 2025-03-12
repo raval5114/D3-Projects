@@ -35,6 +35,7 @@ class Signin {
           debugPrint("User Data: $userData");
 
           userModel = UserModel.fromMap(userData);
+          debugPrint("User");
           prefs.setString('email', email);
           prefs.setString('password', password);
         } else {
@@ -73,5 +74,18 @@ class Signin {
       throw Exception("Sign-in failed: $e");
     }
     return false;
+  }
+
+  /// Logs out the user from Firebase and clears stored login credentials.
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut(); // Sign out from Firebase
+      userModel.clear();
+      await prefs.clear(); // Clear stored login data
+      debugPrint("User successfully logged out.");
+    } catch (e) {
+      debugPrint("Logout Error: $e");
+      throw Exception("Logout failed: $e");
+    }
   }
 }
