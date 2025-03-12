@@ -49,6 +49,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   dart_openai: ^5.1.0
   flutter_native_splash: ^2.4.5
+  calendar_view: ^1.4.0
 
 dev_dependencies:
   flutter_test:

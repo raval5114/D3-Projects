@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:life_time/Data/Models/User.dart';
-import 'package:life_time/Data/Models/customQuote.dart';
 import 'package:meta/meta.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +17,6 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
   ) async {
     try {
       emit(HomePageLoadingState());
-      await Future.delayed(Duration(seconds: 2));
       // Calculate completed days
       double completedDays =
           DateTime.now().difference(userModel.dob).inDays.toDouble();

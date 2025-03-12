@@ -71,7 +71,7 @@ class NotesPageBloc extends Bloc<NotesPageEvent, NotesPageState> {
     });
     on<HomePageNotesDisplayEvent>((event, emit) async {
       emit(NotesPagesLoadingState());
-      List<Map<String, dynamic>> data = await db.retriveNotesOfCurrentDate();
+      List<Map<String, dynamic>> data = await db.retrieveNotesOfCurrentDate();
       emit(NotesPagesSuccessState(notes: data));
     });
   }

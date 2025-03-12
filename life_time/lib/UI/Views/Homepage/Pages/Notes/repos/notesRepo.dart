@@ -43,12 +43,17 @@ class CRUDINNotes {
     return await db.query('notes');
   }
 
-  Future<List<Map<String, dynamic>>> retriveNotesOfCurrentDate() async {
+  Future<List<Map<String, dynamic>>> retrieveNotesOfCurrentDate() async {
     final db = await instance.database;
 
+    // Get today's date in 'YYYY-MM-DD' format
     String today = DateTime.now().toString().split(' ')[0];
 
-    return await db.query('notes', where: "deadline = ?", whereArgs: [today]);
+    return await db.query(
+      'notes',
+      where: "substr(deadline, 1, 10) = ?",
+      whereArgs: [today],
+    );
   }
 
   Future<int> toggleIsChecked(int id, bool isChecked) async {
