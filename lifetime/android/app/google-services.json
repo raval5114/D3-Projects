@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "782530892930",
+    "project_id": "lifetime-558ae",
+    "storage_bucket": "lifetime-558ae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782530892930:android:ff8d3168dc432efdd5909b",
+        "android_client_info": {
+          "package_name": "in.d3softwaresolutions.lifetime"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXdPa8sZ5Lnkx6apJYFT5m8aYDSqrdsLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
