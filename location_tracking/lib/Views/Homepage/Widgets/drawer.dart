@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CustomDrawer extends StatefulWidget {
-  const CustomDrawer({super.key});
+  final VoidCallback onProfileTap; // Callback function
+
+  const CustomDrawer({super.key, required this.onProfileTap});
 
   @override
   _CustomDrawerState createState() => _CustomDrawerState();
@@ -27,10 +29,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
               "Designation - Customer ID",
               style: TextStyle(fontSize: 14),
             ),
-            currentAccountPicture: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white,
-              child: CircleAvatar(radius: 36, child: Icon(Icons.person)),
+            currentAccountPicture: InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+                widget.onProfileTap();
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+
+                child: Icon(Icons.person, color: Colors.black, size: 40),
+              ),
             ),
             decoration: BoxDecoration(color: Color(0xFFF37021)),
           ),

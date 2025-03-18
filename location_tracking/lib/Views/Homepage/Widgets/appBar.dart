@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:location_tracking/Views/NotificationPage/eventAndNotificationPage.dart';
+import 'package:location_tracking/Views/Homepage/pages/notificationPage/eventAndNotificationPage.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String pageTitle;

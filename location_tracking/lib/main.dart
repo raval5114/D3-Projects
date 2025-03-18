@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:location_tracking/Views/Homepage/homepage.dart';
-import 'package:location_tracking/config/config.dart';
+import 'package:location_tracking/Data/config/config.dart';
 
 void main() {
   runApp(const MyApp());

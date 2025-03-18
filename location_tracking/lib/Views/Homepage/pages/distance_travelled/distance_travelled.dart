@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-class DistranceTavelled extends StatelessWidget {
-  const DistranceTavelled({super.key});
+class DistanceTravelled extends StatelessWidget {
+  const DistanceTravelled({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text("Distance Travelled"));
+    return Column(children: [
+        
+      ],
+    );
   }
 }
